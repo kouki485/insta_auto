@@ -1,0 +1,99 @@
+# =============================================================================
+# Secrets / credentials (絶対にコミットしない)
+# =============================================================================
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.session.json
+sessions/
+storage/sessions/
+*.pem
+*.key
+
+# =============================================================================
+# OS / Editor
+# =============================================================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# PHP / Laravel
+# =============================================================================
+backend/vendor/
+backend/node_modules/
+backend/public/hot
+backend/public/storage
+backend/storage/*.key
+backend/storage/app/public/*
+!backend/storage/app/public/.gitkeep
+backend/storage/framework/cache/data/*
+!backend/storage/framework/cache/data/.gitkeep
+backend/storage/framework/sessions/*
+!backend/storage/framework/sessions/.gitkeep
+backend/storage/framework/testing/*
+!backend/storage/framework/testing/.gitkeep
+backend/storage/framework/views/*
+!backend/storage/framework/views/.gitkeep
+backend/storage/logs/*
+!backend/storage/logs/.gitkeep
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitkeep
+backend/.phpunit.result.cache
+backend/.phpunit.cache/
+backend/Homestead.json
+backend/Homestead.yaml
+backend/auth.json
+backend/.phpactor.json
+
+# =============================================================================
+# Node / Next.js / Frontend
+# =============================================================================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.turbo/
+frontend/coverage/
+frontend/.vercel
+frontend/next-env.d.ts
+frontend/.eslintcache
+
+# =============================================================================
+# Python / Worker
+# =============================================================================
+worker/venv/
+worker/.venv/
+worker/__pycache__/
+worker/**/__pycache__/
+worker/*.egg-info/
+worker/.pytest_cache/
+worker/.coverage
+worker/htmlcov/
+worker/.mypy_cache/
+worker/.ruff_cache/
+*.pyc
+*.pyo
+
+# =============================================================================
+# Docker
+# =============================================================================
+docker-compose.override.yml
+
+# =============================================================================
+# Logs
+# =============================================================================
+*.log
+logs/
+
+# =============================================================================
+# Test / coverage
+# =============================================================================
+coverage/
+.nyc_output/

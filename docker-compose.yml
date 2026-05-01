@@ -1,0 +1,130 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: unara-mysql
+    restart: unless-stopped
+    ports:
+      - "${HOST_MYSQL_PORT:-3308}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_DATABASE:-unara}
+      MYSQL_USER: ${DB_USERNAME:-unara}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - unara
+
+  redis:
+    image: redis:7-alpine
+    container_name: unara-redis
+    restart: unless-stopped
+    ports:
+      - "${HOST_REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - unara
+
+  php:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: unara-php
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+      - sessions:/storage/sessions
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-unara}
+      DB_USERNAME: ${DB_USERNAME:-unara}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - unara
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: unara-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    networks:
+      - unara
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: unara-worker
+    restart: unless-stopped
+    volumes:
+      - ./worker:/app
+      - sessions:/storage/sessions
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USERNAME:-unara}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      DB_NAME: ${DB_DATABASE:-unara}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - unara
+
+  node:
+    image: node:20-alpine
+    container_name: unara-node
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm run dev"
+    environment:
+      # ブラウザ(CSR)から叩く URL
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
+      # Server Components / SSR からコンテナネットワーク経由で叩く URL
+      INTERNAL_API_URL: http://nginx/api
+    networks:
+      - unara
+
+volumes:
+  mysql-data:
+  redis-data:
+  sessions:
+
+networks:
+  unara:
+    driver: bridge
