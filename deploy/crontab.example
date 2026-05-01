@@ -1,0 +1,15 @@
+# -----------------------------------------------------------------------------
+# crontab 例(本番 VPS の unara ユーザー)
+# `crontab -e -u unara` で配置する.
+#
+# VPS のシステム TZ が UTC のままでも cron の解釈を JST に固定するため、
+# 先頭で TZ を明示する。crontab 配置後に `crontab -l` と `date` で
+# 必ず JST 解釈になっていることを確認すること.
+# -----------------------------------------------------------------------------
+TZ=Asia/Tokyo
+
+# Laravel スケジューラ (毎分)
+* * * * * cd /home/unara/backend && /usr/bin/php artisan schedule:run >> /var/log/unara/schedule.log 2>&1
+
+# 月次バックアップ (毎月 1 日 04:00 JST)
+0 4 1 * * /usr/bin/mysqldump --single-transaction unara | openssl enc -aes-256-cbc -salt -pass file:/home/unara/.backup-key > /home/unara/backups/unara_$(date +\%Y\%m).sql.enc

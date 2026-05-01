@@ -35,3 +35,13 @@ Sched::command('unara:dispatch-dm')
 Sched::command('unara:adjust-warmup')
     ->dailyAt('00:00')
     ->timezone('Asia/Tokyo');
+
+// Phase 6: 日次レポートを Slack に投稿 (毎日 09:00 JST)
+Sched::command('unara:daily-report')
+    ->dailyAt('09:00')
+    ->timezone('Asia/Tokyo');
+
+// Phase 6: 古いレコードの自動削除 (毎日 03:00 JST、設計書 §9.2)
+Sched::command('unara:prune-old-records')
+    ->dailyAt('03:00')
+    ->timezone('Asia/Tokyo');
