@@ -50,9 +50,33 @@ class DashboardSummaryApiTest extends TestCase
             ->assertJsonPath('data.prospects_pool.new', 1)
             ->assertJsonPath('data.prospects_pool.queued', 1)
             ->assertJsonPath('data.prospects_pool.dm_sent_total', 1)
-            ->assertJsonPath('data.prospects_pool.replied_total', 1);
+            ->assertJsonPath('data.prospects_pool.replied_total', 1)
+            ->assertJsonPath('data.health_score', 100)
+            ->assertJsonPath('data.health_action', 'none');
 
         $this->assertCount(8, $response->json('data.weekly_trend'));
+    }
+
+    public function test_fresh_param_busts_cache_and_returns_latest_state(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+        $account = $this->makeAccount();
+
+        $this->getJson('/api/dashboard/summary')->assertJsonPath('data.prospects_pool.new', 0);
+
+        Prospect::query()->create([
+            'account_id' => $account->id,
+            'ig_user_id' => 'fresh-1',
+            'ig_username' => 'fresh_one',
+            'tourist_score' => 70,
+            'status' => Prospect::STATUS_NEW,
+        ]);
+        // キャッシュが効いている間は反映されない.
+        $this->getJson('/api/dashboard/summary')->assertJsonPath('data.prospects_pool.new', 0);
+
+        // ?fresh=1 でキャッシュ破棄 + 再計算.
+        $this->getJson('/api/dashboard/summary?fresh=1')
+            ->assertJsonPath('data.prospects_pool.new', 1);
     }
 
     public function test_summary_does_not_leak_proxy_url(): void
