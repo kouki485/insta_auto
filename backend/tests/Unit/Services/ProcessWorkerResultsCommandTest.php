@@ -7,6 +7,7 @@ namespace Tests\Unit\Services;
 use App\Models\Account;
 use App\Models\DmLog;
 use App\Models\DmTemplate;
+use App\Models\HashtagWatchlist;
 use App\Models\PostSchedule;
 use App\Models\Prospect;
 use App\Models\SafetyEvent;
@@ -125,6 +126,156 @@ class ProcessWorkerResultsCommandTest extends TestCase
         $this->assertSame(PostSchedule::STATUS_POSTED, $post->status);
         $this->assertSame('ig-media-1', $post->ig_media_id);
         $this->assertNotNull($post->posted_at);
+    }
+
+    public function test_scrape_result_upserts_prospects_and_updates_hashtag_timestamp(): void
+    {
+        $account = $this->makeAccount();
+        $tag = HashtagWatchlist::query()->create([
+            'account_id' => $account->id,
+            'hashtag' => 'asakusa',
+            'priority' => 10,
+            'active' => true,
+        ]);
+
+        $service = Mockery::mock(WorkerQueueService::class);
+        $service->shouldReceive('popResult')
+            ->andReturn([
+                'job_id' => 'scrape-1',
+                'status' => 'success',
+                'account_id' => $account->id,
+                'result' => [
+                    'hashtag' => 'asakusa',
+                    'hashtag_id' => $tag->id,
+                    'candidates' => [
+                        [
+                            'ig_user_id' => 'u_alpha',
+                            'ig_username' => 'alpha_traveler',
+                            'full_name' => 'Alpha User',
+                            'bio' => 'travel blogger',
+                            'follower_count' => 12000,
+                            'tourist_score' => 75,
+                            'source_hashtag' => 'asakusa',
+                            'source_post_url' => 'https://example.com/p/x',
+                        ],
+                        [
+                            'ig_user_id' => 'u_beta',
+                            'ig_username' => 'beta_tourist',
+                            'follower_count' => 8000,
+                            'tourist_score' => 65,
+                        ],
+                    ],
+                ],
+                'error' => null,
+            ], null);
+        $this->app->instance(WorkerQueueService::class, $service);
+
+        $this->artisan('unara:process-results')->assertOk();
+
+        $this->assertDatabaseHas('prospects', [
+            'account_id' => $account->id,
+            'ig_user_id' => 'u_alpha',
+            'tourist_score' => 75,
+            'is_tourist' => true,
+            'source_hashtag' => 'asakusa',
+        ]);
+        $this->assertDatabaseHas('prospects', [
+            'account_id' => $account->id,
+            'ig_user_id' => 'u_beta',
+            'tourist_score' => 65,
+        ]);
+        $this->assertNotNull($tag->fresh()->last_scraped_at);
+    }
+
+    public function test_scrape_result_does_not_overwrite_existing_status(): void
+    {
+        $account = $this->makeAccount();
+        Prospect::query()->create([
+            'account_id' => $account->id,
+            'ig_user_id' => 'u_dm_sent',
+            'ig_username' => 'tourist_old',
+            'tourist_score' => 70,
+            'status' => Prospect::STATUS_DM_SENT,
+            'dm_sent_at' => now(),
+        ]);
+
+        $service = Mockery::mock(WorkerQueueService::class);
+        $service->shouldReceive('popResult')
+            ->andReturn([
+                'job_id' => 'scrape-keep',
+                'status' => 'success',
+                'account_id' => $account->id,
+                'result' => [
+                    'hashtag' => 'asakusa',
+                    'candidates' => [[
+                        'ig_user_id' => 'u_dm_sent',
+                        'ig_username' => 'tourist_renamed',
+                        'follower_count' => 20000,
+                        'tourist_score' => 90,
+                    ]],
+                ],
+                'error' => null,
+            ], null);
+        $this->app->instance(WorkerQueueService::class, $service);
+
+        $this->artisan('unara:process-results')->assertOk();
+
+        $row = Prospect::query()->where('ig_user_id', 'u_dm_sent')->firstOrFail();
+        // status は dm_sent のまま、新規 DM は送られない.
+        $this->assertSame(Prospect::STATUS_DM_SENT, $row->status);
+        // メタデータ (username, score) は更新される.
+        $this->assertSame('tourist_renamed', $row->ig_username);
+        $this->assertSame(90, $row->tourist_score);
+    }
+
+    public function test_scrape_result_re_upsert_keeps_unique_per_account(): void
+    {
+        $account = $this->makeAccount();
+
+        $service = Mockery::mock(WorkerQueueService::class);
+        $service->shouldReceive('popResult')
+            ->andReturn(
+                [
+                    'job_id' => 'scrape-2',
+                    'status' => 'success',
+                    'account_id' => $account->id,
+                    'result' => [
+                        'hashtag' => 'asakusa',
+                        'candidates' => [[
+                            'ig_user_id' => 'u_dup',
+                            'ig_username' => 'dup_user',
+                            'follower_count' => 9000,
+                            'tourist_score' => 70,
+                        ]],
+                    ],
+                    'error' => null,
+                ],
+                [
+                    'job_id' => 'scrape-3',
+                    'status' => 'success',
+                    'account_id' => $account->id,
+                    'result' => [
+                        'hashtag' => 'sensoji',
+                        'candidates' => [[
+                            'ig_user_id' => 'u_dup',
+                            'ig_username' => 'dup_user_renamed',
+                            'follower_count' => 11000,
+                            'tourist_score' => 80,
+                        ]],
+                    ],
+                    'error' => null,
+                ],
+                null,
+            );
+        $this->app->instance(WorkerQueueService::class, $service);
+
+        $this->artisan('unara:process-results')->assertOk();
+
+        $this->assertSame(1, Prospect::query()->where('account_id', $account->id)->count());
+        $row = Prospect::query()->where('account_id', $account->id)->firstOrFail();
+        $this->assertSame('dup_user_renamed', $row->ig_username);
+        $this->assertSame(80, $row->tourist_score);
+        $this->assertSame('sensoji', $row->source_hashtag);
     }
 
     /**

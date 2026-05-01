@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\DmLog;
+use App\Models\HashtagWatchlist;
 use App\Models\PostSchedule;
 use App\Models\Prospect;
 use App\Models\SafetyEvent;
@@ -65,7 +66,7 @@ class ProcessWorkerResultsCommand extends Command
             return;
         }
 
-        DB::transaction(function () use ($jobId, $status, $error, $result): void {
+        DB::transaction(function () use ($jobId, $status, $error, $result, $payload): void {
             $dmLog = DmLog::query()->where('worker_job_id', $jobId)->first();
             if ($dmLog !== null) {
                 $this->applyDmLogResult($dmLog, $status, $error, $result);
@@ -79,7 +80,84 @@ class ProcessWorkerResultsCommand extends Command
 
                 return;
             }
+
+            // 設計書 §3.1: scrape 結果は worker_job_id を保持していないので
+            // result.candidates を直接 prospects に upsert する.
+            if ($status === 'success' && isset($result['candidates']) && is_array($result['candidates'])) {
+                $accountId = (int) ($payload['account_id'] ?? 0);
+                if ($accountId > 0) {
+                    $this->applyScrapeResult($accountId, $result);
+                }
+            }
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $result
+     */
+    private function applyScrapeResult(int $accountId, array $result): void
+    {
+        $hashtagId = $result['hashtag_id'] ?? null;
+        $hashtag = (string) ($result['hashtag'] ?? '');
+        $candidates = $result['candidates'] ?? [];
+        if (! is_array($candidates)) {
+            return;
+        }
+
+        $upserted = 0;
+        foreach ($candidates as $candidate) {
+            if (! is_array($candidate)) {
+                continue;
+            }
+            $igUserId = (string) ($candidate['ig_user_id'] ?? '');
+            $igUsername = (string) ($candidate['ig_username'] ?? '');
+            if ($igUserId === '' || $igUsername === '') {
+                continue;
+            }
+
+            $score = (int) ($candidate['tourist_score'] ?? 0);
+
+            // 既存レコードの status は保持する。dm_sent / replied / queued / blacklisted を
+            // 'new' に上書きすると DM 二重送信やブラックリスト解除を招く.
+            $prospect = Prospect::query()->firstOrCreate(
+                ['account_id' => $accountId, 'ig_user_id' => $igUserId],
+                [
+                    'ig_username' => $igUsername,
+                    'status' => Prospect::STATUS_NEW,
+                    'found_at' => now(),
+                ],
+            );
+
+            $prospect->fill([
+                'ig_username' => $igUsername,
+                'full_name' => $candidate['full_name'] ?? $prospect->full_name,
+                'bio' => $candidate['bio'] ?? $prospect->bio,
+                'follower_count' => (int) ($candidate['follower_count'] ?? $prospect->follower_count),
+                'following_count' => (int) ($candidate['following_count'] ?? $prospect->following_count),
+                'post_count' => (int) ($candidate['post_count'] ?? $prospect->post_count),
+                'detected_lang' => $candidate['detected_lang'] ?? $prospect->detected_lang,
+                'source_hashtag' => $hashtag !== ''
+                    ? $hashtag
+                    : ($candidate['source_hashtag'] ?? $prospect->source_hashtag),
+                'source_post_url' => $candidate['source_post_url'] ?? $prospect->source_post_url,
+                'is_tourist' => $score >= Prospect::TOURIST_SCORE_THRESHOLD,
+                'tourist_score' => $score,
+            ])->save();
+            $upserted++;
+        }
+
+        if ($hashtagId !== null) {
+            HashtagWatchlist::query()
+                ->where('id', $hashtagId)
+                ->where('account_id', $accountId)
+                ->update(['last_scraped_at' => now()]);
+        }
+
+        Log::info('scrape_result_applied', [
+            'account_id' => $accountId,
+            'hashtag' => $hashtag,
+            'upserted' => $upserted,
+        ]);
     }
 
     /**

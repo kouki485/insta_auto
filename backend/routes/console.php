@@ -22,3 +22,8 @@ Sched::command('unara:process-results')
 Sched::command('unara:dispatch-scheduled-posts')
     ->everyMinute()
     ->withoutOverlapping();
+
+// 設計書 §3.1.3: スクレイピングは 1 時間あたり 10 タグ。毎時 0 分に投入する.
+Sched::command('unara:dispatch-scraping')
+    ->hourly()
+    ->withoutOverlapping();

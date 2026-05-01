@@ -46,10 +46,15 @@ class JobPayload:
 
 @dataclass
 class JobResult:
-    """Laravel に書き戻す結果のスキーマ."""
+    """Laravel に書き戻す結果のスキーマ.
+
+    account_id は scrape ジョブのように worker_job_id を持たないリソース
+    (prospects upsert) を Laravel 側で対象アカウントに紐づけるために必要.
+    """
 
     job_id: str
     status: str  # "success" | "failure"
+    account_id: int | None = None
     result: dict[str, Any] | None = None
     error: str | None = None
     completed_at: str = field(default_factory=lambda: _now_iso())
