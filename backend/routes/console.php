@@ -2,28 +2,36 @@
 
 declare(strict_types=1);
 
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Schedule as Sched;
 
 /*
 |--------------------------------------------------------------------------
 | Console Routes / Scheduler 登録
 |--------------------------------------------------------------------------
-| Phase 2: 投稿スケジューラを毎分起動する.
-| Phase 1: Worker 結果消費 (`unara:process-results`) を 1 分間隔で実行.
-|
-| `* * * * * php artisan schedule:run` を cron に登録すれば動作する.
+| `* * * * * php artisan schedule:run` を cron に登録する想定.
 */
 
+// Phase 1: Worker 結果消費
 Sched::command('unara:process-results')
     ->everyMinute()
     ->withoutOverlapping();
 
+// Phase 2: 投稿スケジューラ (scheduled_at が到達した post_schedules を毎分処理)
 Sched::command('unara:dispatch-scheduled-posts')
     ->everyMinute()
     ->withoutOverlapping();
 
-// 設計書 §3.1.3: スクレイピングは 1 時間あたり 10 タグ。毎時 0 分に投入する.
+// Phase 3: スクレイピング (毎時 0 分、設計書 §3.1.3 で 1 時間 10 タグ)
 Sched::command('unara:dispatch-scraping')
     ->hourly()
     ->withoutOverlapping();
+
+// Phase 4: 自動 DM 送信 (30 分毎、平日 9:00-21:00 のフィルタは Command 側で実施)
+Sched::command('unara:dispatch-dm')
+    ->everyThirtyMinutes()
+    ->withoutOverlapping();
+
+// Phase 4: ウォームアップ自動引き上げ (毎日 0:00 JST)
+Sched::command('unara:adjust-warmup')
+    ->dailyAt('00:00')
+    ->timezone('Asia/Tokyo');

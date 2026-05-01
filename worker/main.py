@@ -1,11 +1,9 @@
 """Worker エントリーポイント.
 
-Phase 2 (post_feed / post_story) と Phase 3 (scrape) のジョブを処理する.
+Phase 2 (post_feed / post_story) / Phase 3 (scrape) / Phase 4 (dm) を処理する.
 - セッション永続化 + プロキシ固定 + human_delay は InstagramClient 内で必ず実行
-- 例外は safety.classify_instagrapi_exception で event_type に変換し、
-  失敗時は JobResult.error に文字列を詰めて Laravel 側 ProcessWorkerResults へ返す
-
-Phase 4 で DM ハンドラを追加する.
+- 例外は SafetyGuard / safety.classify_instagrapi_exception で event_type に変換
+- 失敗時は JobResult.error / result.safety_events を Laravel 側 ProcessWorkerResults へ返す
 """
 
 from __future__ import annotations
@@ -18,7 +16,9 @@ import redis
 import sentry_sdk
 
 from src.config import WorkerConfig
+from src.dm_sender import DmSender
 from src.instagram_client import AccountContext, InstagramClient
+from src.noise_action import perform as perform_noise
 from src.post_publisher import PostPublisher
 from src.prospect_scraper import ProspectScraper, candidates_to_payload
 from src.queue_protocol import (
@@ -29,6 +29,7 @@ from src.queue_protocol import (
 )
 from src.rate_limiter import HourlyRateLimiter
 from src.safety import classify_instagrapi_exception
+from src.safety_guard import SafetyGuard
 
 DM_QUEUE = "dm"
 SCRAPE_QUEUE = "scrape"
@@ -88,7 +89,8 @@ def handle(
             return _handle_scrape(
                 job, config=config, ig_factory=ig_factory, redis_client=redis_client
             )
-        # Phase 4 で dm を実装する.
+        if job.type == DM_QUEUE:
+            return _handle_dm(job, config=config, ig_factory=ig_factory)
         return JobResult(
             job_id=job.job_id,
             status="success",
@@ -106,11 +108,17 @@ def handle(
                 "severity": severity,
             },
         )
+        guard = SafetyGuard(
+            account_id=job.account_id,
+            slack_webhook_url=config.slack_webhook_url,
+        )
+        guard.record_exception(exc, context=job.type)
         return JobResult(
             job_id=job.job_id,
             status="failure",
             account_id=job.account_id,
             error=f"{type(exc).__name__}: {exc}",
+            result={"safety": guard.verdict.to_dict()},
         )
 
 
@@ -183,6 +191,57 @@ def _handle_scrape(
             "hashtag": hashtag,
             "hashtag_id": job.data.get("hashtag_id"),
             "candidates": candidates_to_payload(candidates),
+        },
+    )
+
+
+def _handle_dm(job: JobPayload, *, config: WorkerConfig, ig_factory) -> JobResult:
+    ig_user_id = str(job.data.get("ig_user_id") or "")
+    message = str(job.data.get("message") or "")
+    if not ig_user_id:
+        raise ValueError("ig_user_id missing in job payload")
+    if not message.strip():
+        raise ValueError("message missing in job payload")
+
+    context = AccountContext(
+        account_id=job.account_id,
+        username=config.instagram_username,
+        password=config.instagram_password,
+        proxy_url=config.proxy_url,
+        session_path=str(Path(config.session_dir) / f"{job.account_id}.json"),
+    )
+    ig_client = ig_factory(context) if ig_factory is not None else InstagramClient(context)
+    ig_client.login()
+
+    guard = SafetyGuard(account_id=job.account_id, slack_webhook_url=config.slack_webhook_url)
+    sender = DmSender(ig_client, guard)
+    outcome = sender.send(ig_user_id, message)
+
+    noise = None
+    if outcome.success:
+        # 設計書 §3.2.1 step 7 / §4.1.6: 50% 確率でノイズ動作.
+        try:
+            noise = perform_noise(ig_client)
+        except Exception as exc:  # noqa: BLE001 - ノイズ失敗は致命的ではない
+            guard.record_exception(exc, context="noise_action")
+
+    if not outcome.success:
+        return JobResult(
+            job_id=job.job_id,
+            status="failure",
+            account_id=job.account_id,
+            error=outcome.error,
+            result={"safety": guard.verdict.to_dict()},
+        )
+
+    return JobResult(
+        job_id=job.job_id,
+        status="success",
+        account_id=job.account_id,
+        result={
+            "ig_message_id": outcome.ig_message_id,
+            "noise_action": noise,
+            "safety": guard.verdict.to_dict(),
         },
     )
 

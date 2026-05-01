@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Account;
 use App\Models\DmLog;
 use App\Models\HashtagWatchlist;
 use App\Models\PostSchedule;
 use App\Models\Prospect;
 use App\Models\SafetyEvent;
+use App\Services\SlackNotifier;
 use App\Services\Worker\WorkerQueueService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +26,11 @@ class ProcessWorkerResultsCommand extends Command
     protected $signature = 'unara:process-results {--max=200 : 1 回の起動で処理する最大件数}';
 
     protected $description = 'Python Worker からの結果キューを消費して DB に反映する.';
+
+    public function __construct(private readonly SlackNotifier $slack)
+    {
+        parent::__construct();
+    }
 
     public function handle(WorkerQueueService $service): int
     {
@@ -66,7 +73,12 @@ class ProcessWorkerResultsCommand extends Command
             return;
         }
 
-        DB::transaction(function () use ($jobId, $status, $error, $result, $payload): void {
+        $accountId = (int) ($payload['account_id'] ?? 0);
+
+        DB::transaction(function () use ($jobId, $status, $error, $result, $payload, $accountId): void {
+            // 設計書 §4.1.5 / §4.3: Worker が結果に safety を含めていれば永続化 + auto_pause 連動.
+            $this->ingestSafetyEvents($accountId, $result);
+
             $dmLog = DmLog::query()->where('worker_job_id', $jobId)->first();
             if ($dmLog !== null) {
                 $this->applyDmLogResult($dmLog, $status, $error, $result);
@@ -84,12 +96,88 @@ class ProcessWorkerResultsCommand extends Command
             // 設計書 §3.1: scrape 結果は worker_job_id を保持していないので
             // result.candidates を直接 prospects に upsert する.
             if ($status === 'success' && isset($result['candidates']) && is_array($result['candidates'])) {
-                $accountId = (int) ($payload['account_id'] ?? 0);
                 if ($accountId > 0) {
                     $this->applyScrapeResult($accountId, $result);
                 }
             }
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $result
+     */
+    private function ingestSafetyEvents(int $accountId, array $result): void
+    {
+        if ($accountId <= 0) {
+            return;
+        }
+        $safety = $result['safety'] ?? null;
+        if (! is_array($safety)) {
+            return;
+        }
+        $events = $safety['events'] ?? [];
+        if (! is_array($events)) {
+            return;
+        }
+
+        $criticalDetails = [];
+        foreach ($events as $event) {
+            if (! is_array($event)) {
+                continue;
+            }
+            $type = (string) ($event['event_type'] ?? '');
+            $severity = (string) ($event['severity'] ?? '');
+            if ($type === '' || $severity === '') {
+                continue;
+            }
+            SafetyEvent::query()->create([
+                'account_id' => $accountId,
+                'event_type' => $type,
+                'severity' => $severity,
+                'details' => is_array($event['details'] ?? null) ? $event['details'] : [],
+                'occurred_at' => now(),
+            ]);
+            if ($severity === SafetyEvent::SEVERITY_CRITICAL) {
+                $criticalDetails[] = [
+                    'event_type' => $type,
+                    'details' => $event['details'] ?? null,
+                ];
+            }
+        }
+
+        if (! empty($safety['auto_pause_requested']) || count($criticalDetails) > 0) {
+            $this->autoPause($accountId, $criticalDetails);
+        }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $criticalDetails
+     */
+    private function autoPause(int $accountId, array $criticalDetails): void
+    {
+        $account = Account::query()->find($accountId);
+        if ($account === null || $account->status === Account::STATUS_PAUSED) {
+            return;
+        }
+        $account->forceFill(['status' => Account::STATUS_PAUSED])->save();
+        SafetyEvent::query()->create([
+            'account_id' => $accountId,
+            'event_type' => SafetyEvent::TYPE_AUTO_PAUSED,
+            'severity' => SafetyEvent::SEVERITY_CRITICAL,
+            'details' => ['reason' => 'critical_event_from_worker', 'events' => $criticalDetails],
+            'occurred_at' => now(),
+        ]);
+        $this->slack->notify(
+            sprintf(
+                ":rotating_light: account_id=%d auto-paused. Reason: %s",
+                $accountId,
+                json_encode($criticalDetails, JSON_UNESCAPED_UNICODE),
+            ),
+        );
+        Log::warning('account_auto_paused_from_worker', [
+            'account_id' => $accountId,
+            'critical_events' => $criticalDetails,
+        ]);
     }
 
     /**

@@ -123,7 +123,7 @@ def test_handle_unknown_type_returns_echo(config: WorkerConfig) -> None:
     job = JobPayload(
         job_id="j-4",
         account_id=1,
-        type=main.DM_QUEUE,
+        type="unknown_queue",
         data={"x": 1},
         created_at="2026-05-01T10:00:00Z",
     )

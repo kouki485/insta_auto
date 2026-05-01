@@ -50,9 +50,13 @@ class AccountController extends Controller
 
     public function resume(Account $account): JsonResponse
     {
+        // 設計書 §4.4: 再開後 1 週間は daily_dm_limit を 5 に戻す.
+        // warmup_started_at をリセットすることで AdjustWarmupLimitsCommand が
+        // 上限を即座に復元してしまうのを防ぐ.
         $account->update([
             'status' => Account::STATUS_ACTIVE,
-            'daily_dm_limit' => 5, // 設計書 §4.4 再開後は 5/日 から再ウォームアップ
+            'daily_dm_limit' => 5,
+            'warmup_started_at' => now(),
         ]);
 
         return response()->json(['data' => $this->toResource($account)]);

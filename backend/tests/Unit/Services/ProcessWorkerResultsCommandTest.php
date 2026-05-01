@@ -11,14 +11,23 @@ use App\Models\HashtagWatchlist;
 use App\Models\PostSchedule;
 use App\Models\Prospect;
 use App\Models\SafetyEvent;
+use App\Services\SlackNotifier;
 use App\Services\Worker\WorkerQueueService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Mockery;
 use Tests\TestCase;
 
 class ProcessWorkerResultsCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // テストでは空 webhook を注入し Slack 通知を実際には送らない.
+        $this->app->instance(SlackNotifier::class, new SlackNotifier($this->app->make(HttpFactory::class), ''));
+    }
 
     public function test_dm_log_success_marks_log_sent_and_prospect_dm_sent(): void
     {
@@ -126,6 +135,78 @@ class ProcessWorkerResultsCommandTest extends TestCase
         $this->assertSame(PostSchedule::STATUS_POSTED, $post->status);
         $this->assertSame('ig-media-1', $post->ig_media_id);
         $this->assertNotNull($post->posted_at);
+    }
+
+    public function test_critical_safety_event_auto_pauses_account(): void
+    {
+        $account = $this->makeAccount();
+
+        $service = Mockery::mock(WorkerQueueService::class);
+        $service->shouldReceive('popResult')
+            ->andReturn([
+                'job_id' => 'job-x',
+                'status' => 'failure',
+                'account_id' => $account->id,
+                'error' => 'ChallengeRequired: please confirm',
+                'result' => [
+                    'safety' => [
+                        'auto_pause_requested' => true,
+                        'events' => [[
+                            'event_type' => SafetyEvent::TYPE_CHALLENGE_REQUIRED,
+                            'severity' => SafetyEvent::SEVERITY_CRITICAL,
+                            'details' => ['context' => 'direct_send'],
+                        ]],
+                    ],
+                ],
+            ], null);
+        $this->app->instance(WorkerQueueService::class, $service);
+
+        $this->artisan('unara:process-results')->assertOk();
+
+        $this->assertSame(Account::STATUS_PAUSED, $account->fresh()->status);
+        $this->assertDatabaseHas('safety_events', [
+            'account_id' => $account->id,
+            'event_type' => SafetyEvent::TYPE_CHALLENGE_REQUIRED,
+            'severity' => SafetyEvent::SEVERITY_CRITICAL,
+        ]);
+        $this->assertDatabaseHas('safety_events', [
+            'account_id' => $account->id,
+            'event_type' => SafetyEvent::TYPE_AUTO_PAUSED,
+        ]);
+    }
+
+    public function test_warning_safety_event_does_not_auto_pause(): void
+    {
+        $account = $this->makeAccount();
+
+        $service = Mockery::mock(WorkerQueueService::class);
+        $service->shouldReceive('popResult')
+            ->andReturn([
+                'job_id' => 'job-warn',
+                'status' => 'failure',
+                'account_id' => $account->id,
+                'error' => 'PleaseWaitFewMinutes',
+                'result' => [
+                    'safety' => [
+                        'auto_pause_requested' => false,
+                        'events' => [[
+                            'event_type' => SafetyEvent::TYPE_RATE_LIMITED,
+                            'severity' => SafetyEvent::SEVERITY_WARNING,
+                            'details' => ['context' => 'direct_send'],
+                        ]],
+                    ],
+                ],
+            ], null);
+        $this->app->instance(WorkerQueueService::class, $service);
+
+        $this->artisan('unara:process-results')->assertOk();
+
+        $this->assertSame(Account::STATUS_ACTIVE, $account->fresh()->status);
+        $this->assertDatabaseHas('safety_events', [
+            'account_id' => $account->id,
+            'event_type' => SafetyEvent::TYPE_RATE_LIMITED,
+            'severity' => SafetyEvent::SEVERITY_WARNING,
+        ]);
     }
 
     public function test_scrape_result_upserts_prospects_and_updates_hashtag_timestamp(): void
