@@ -21,10 +21,8 @@ class AccountSeeder extends Seeder
                     'SEED_SESSION_PATH',
                     "/storage/sessions/{$username}.json"
                 ),
-                'proxy_url' => env(
-                    'SEED_PROXY_URL',
-                    'http://user:pass@brd.superproxy.io:22225'
-                ),
+                // ローカル動作確認では空文字列で OK. Worker は LOCAL_MODE=true でスタブ応答する.
+                'proxy_url' => env('SEED_PROXY_URL', ''),
                 'ig_password' => env('SEED_IG_PASSWORD', 'change-me'),
                 'daily_dm_limit' => 5,
                 'daily_follow_limit' => 5,

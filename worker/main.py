@@ -136,6 +136,7 @@ def _handle_post(job: JobPayload, *, config: WorkerConfig, ig_factory) -> JobRes
         password=config.instagram_password,
         proxy_url=config.proxy_url,
         session_path=str(Path(config.session_dir) / f"{job.account_id}.json"),
+        local_mode=config.local_mode,
     )
     if ig_factory is None:
         ig_client = InstagramClient(context)
@@ -175,6 +176,7 @@ def _handle_scrape(
         password=config.instagram_password,
         proxy_url=config.proxy_url,
         session_path=str(Path(config.session_dir) / f"{job.account_id}.json"),
+        local_mode=config.local_mode,
     )
     ig_client = ig_factory(context) if ig_factory is not None else InstagramClient(context)
     ig_client.login()
@@ -209,6 +211,7 @@ def _handle_dm(job: JobPayload, *, config: WorkerConfig, ig_factory) -> JobResul
         password=config.instagram_password,
         proxy_url=config.proxy_url,
         session_path=str(Path(config.session_dir) / f"{job.account_id}.json"),
+        local_mode=config.local_mode,
     )
     ig_client = ig_factory(context) if ig_factory is not None else InstagramClient(context)
     ig_client.login()

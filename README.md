@@ -17,6 +17,50 @@
 
 詳細なアーキテクチャ図は `docs/DESIGN.md` §1.1。
 
+## 5分でローカル動作確認 (LOCAL_MODE)
+
+ドメイン / VPS / Bright Data プロキシ / Anthropic API キー / 実 Instagram アカウント
+**すべて不要** で、Backend + Frontend + Worker の疎通だけ確認したい場合の手順です.
+
+LOCAL_MODE では Worker は実 Instagram API を叩かずスタブクライアント
+(`worker/src/local_stub_client.py`) で応答します. DM 文面も Anthropic API キーが
+空であれば `dm_templates` のテンプレ展開へ自動フォールバックします.
+
+```bash
+# 1. ワンコマンド起動 (.env 自動生成 → docker compose up → migrate --seed)
+./scripts/local-start.sh
+```
+
+起動後のアクセス先:
+
+| サービス | URL |
+|---|---|
+| Frontend (Next.js) | http://localhost:3000 |
+| Backend API | http://localhost:8080/api |
+
+ログイン情報 (`backend/.env.example` の `SEED_ADMIN_*` で変更可):
+
+- メール: `admin@example.com`
+- パスワード: `password`
+
+ログ確認:
+
+```bash
+docker compose logs -f worker   # スタブで応答するジョブハンドラのログ
+docker compose logs -f php      # Laravel API のログ
+```
+
+停止:
+
+```bash
+docker compose down
+```
+
+本番運用に切り替えるときは `.env` の `LOCAL_MODE=false` にし、
+`docs/SETUP.md` の手順で各種シークレット/プロキシ/セッションを揃えてください.
+
+---
+
 ## 開発フロー
 
 ### 初回セットアップ

@@ -47,6 +47,7 @@ class AccountContext:
     password: str
     proxy_url: str
     session_path: str
+    local_mode: bool = False
 
 
 class InstagramClient:
@@ -95,11 +96,22 @@ class InstagramClient:
 
     def _build_client(self, client_factory) -> _InstagrapiClient:
         if client_factory is None:
-            from instagrapi import Client  # local import で test 時 import 失敗を避ける
+            if self._context.local_mode:
+                # ローカル動作確認用: 実 Instagram API を叩かず no-op を返す.
+                from src.local_stub_client import LocalStubClient
 
-            client = Client()
+                client = LocalStubClient()
+            else:
+                from instagrapi import Client  # local import で test 時 import 失敗を避ける
+
+                client = Client()
         else:
             client = client_factory()
+
+        if self._context.local_mode:
+            # スタブクライアントは proxy 不要。set_proxy はログのみ.
+            client.set_proxy(self._context.proxy_url or "")
+            return client
 
         # 設計書 §4.1.1: 直接接続は BAN 直行のため proxy 未設定なら必ず失敗させる.
         if not self._context.proxy_url:

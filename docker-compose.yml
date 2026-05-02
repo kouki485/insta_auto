@@ -94,6 +94,12 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       PYTHONUNBUFFERED: "1"
+      # ローカル動作確認モード: 実 Instagram API を叩かずスタブで応答する.
+      LOCAL_MODE: ${LOCAL_MODE:-true}
+      INSTAGRAM_USERNAME: ${INSTAGRAM_USERNAME:-demo_account}
+      INSTAGRAM_PASSWORD: ${INSTAGRAM_PASSWORD:-stub-password}
+      PROXY_URL: ${PROXY_URL:-}
+      SESSION_DIR: /storage/sessions
     depends_on:
       mysql:
         condition: service_healthy

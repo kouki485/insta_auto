@@ -33,6 +33,8 @@ class WorkerConfig:
     log_level: str
     worker_queue_timeout: int
 
+    local_mode: bool = False
+
     @classmethod
     def from_env(cls) -> "WorkerConfig":
         return cls(
@@ -52,4 +54,5 @@ class WorkerConfig:
             slack_webhook_url=os.getenv("SLACK_WEBHOOK_URL", ""),
             log_level=os.getenv("LOG_LEVEL", "INFO"),
             worker_queue_timeout=int(os.getenv("WORKER_QUEUE_TIMEOUT", "30")),
+            local_mode=os.getenv("LOCAL_MODE", "false").lower() in {"1", "true", "yes"},
         )
