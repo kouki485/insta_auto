@@ -39,7 +39,7 @@ class DispatchScheduledPostsCommandTest extends TestCase
             ->andReturn('job-uuid');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-scheduled-posts')->assertOk();
+        $this->artisan('instaauto:dispatch-scheduled-posts')->assertOk();
 
         $post->refresh();
         $this->assertSame(PostSchedule::STATUS_POSTING, $post->status);
@@ -61,7 +61,7 @@ class DispatchScheduledPostsCommandTest extends TestCase
         $service->shouldNotReceive('dispatch');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-scheduled-posts')->assertOk();
+        $this->artisan('instaauto:dispatch-scheduled-posts')->assertOk();
     }
 
     public function test_skips_dispatch_when_account_is_paused(): void
@@ -79,7 +79,7 @@ class DispatchScheduledPostsCommandTest extends TestCase
         $service->shouldNotReceive('dispatch');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-scheduled-posts')->assertOk();
+        $this->artisan('instaauto:dispatch-scheduled-posts')->assertOk();
 
         $this->assertSame(PostSchedule::STATUS_SCHEDULED, $post->fresh()->status);
     }
@@ -102,15 +102,15 @@ class DispatchScheduledPostsCommandTest extends TestCase
             ->andReturn('story-job');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-scheduled-posts')->assertOk();
+        $this->artisan('instaauto:dispatch-scheduled-posts')->assertOk();
         $this->assertSame(PostSchedule::STATUS_POSTING, $post->fresh()->status);
     }
 
     private function makeAccount(array $overrides = []): Account
     {
         return Account::query()->create(array_merge([
-            'store_name' => 'うなら',
-            'ig_username' => 'unara_disp_'.uniqid(),
+            'store_name' => 'Demo Store',
+            'ig_username' => 'demo_disp_'.uniqid(),
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://u:p@example.com',
             'ig_password' => 'secret',

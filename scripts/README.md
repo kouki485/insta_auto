@@ -31,8 +31,8 @@ python scripts/generate_session.py
 完了後、生成された JSON を本番サーバーへ転送する想定:
 
 ```bash
-scp ./sessions/unara.json unara@server:/home/unara/storage/sessions/1.json
-ssh unara@server "chmod 600 /home/unara/storage/sessions/1.json"
+scp ./sessions/your_ig_account.json deploy@server:/srv/instaauto/storage/sessions/1.json
+ssh deploy@server "chmod 600 /srv/instaauto/storage/sessions/1.json"
 ```
 
 `accounts.ig_session_path` に `/storage/sessions/1.json` を登録する。

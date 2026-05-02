@@ -61,9 +61,9 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-100 px-4">
       <Card className="w-full max-w-md">
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-widest text-zinc-400">うなら</p>
-          <h1 className="mt-1 text-xl font-semibold text-zinc-900">運用ダッシュボード</h1>
-          <p className="mt-1 text-sm text-zinc-500">運用代行スタッフ向けログイン</p>
+          <p className="text-xs uppercase tracking-widest text-zinc-400">Insta Auto</p>
+          <h1 className="mt-1 text-xl font-semibold text-zinc-900">Instagram 運用ダッシュボード</h1>
+          <p className="mt-1 text-sm text-zinc-500">運用担当者ログイン</p>
         </div>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1">
@@ -73,7 +73,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="staff@unara.local"
+              placeholder="staff@example.com"
             />
           </div>
           <div className="space-y-1">

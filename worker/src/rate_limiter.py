@@ -26,7 +26,7 @@ class _RedisLike(Protocol):
 
 
 class HourlyRateLimiter:
-    def __init__(self, client: _RedisLike, prefix: str = "unara:rl:") -> None:
+    def __init__(self, client: _RedisLike, prefix: str = "instaauto:rl:") -> None:
         self._client = client
         self._prefix = prefix
 

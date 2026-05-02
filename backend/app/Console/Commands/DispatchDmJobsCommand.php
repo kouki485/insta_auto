@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Log;
  */
 class DispatchDmJobsCommand extends Command
 {
-    protected $signature = 'unara:dispatch-dm';
+    protected $signature = 'instaauto:dispatch-dm';
 
     protected $description = 'tourist_score>=60 の候補から 1 件 DM ジョブを Worker キューへ投入する.';
 

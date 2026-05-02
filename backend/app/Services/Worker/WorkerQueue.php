@@ -9,7 +9,7 @@ namespace App\Services\Worker;
  */
 final class WorkerQueue
 {
-    public const PREFIX = 'unara:queue:';
+    public const PREFIX = 'instaauto:queue:';
 
     public const DM = 'dm';
 

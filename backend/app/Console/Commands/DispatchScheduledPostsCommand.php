@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
  */
 class DispatchScheduledPostsCommand extends Command
 {
-    protected $signature = 'unara:dispatch-scheduled-posts {--limit=20 : 1 回の起動で処理する最大件数}';
+    protected $signature = 'instaauto:dispatch-scheduled-posts {--limit=20 : 1 回の起動で処理する最大件数}';
 
     protected $description = 'scheduled_at が到達した post_schedules を Worker キューに投入する.';
 

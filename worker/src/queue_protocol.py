@@ -1,7 +1,7 @@
 """Laravel ↔ Worker 共通の Redis JSON プロトコル.
 
-設計書 §1.3 に準拠。Laravel が `unara:queue:{name}` に LPUSH したペイロードを
-BRPOP で取り出し、結果を `unara:queue:result` に LPUSH で書き戻す。
+設計書 §1.3 に準拠。Laravel が `instaauto:queue:{name}` に LPUSH したペイロードを
+BRPOP で取り出し、結果を `instaauto:queue:result` に LPUSH で書き戻す。
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ import redis
 
 logger = logging.getLogger(__name__)
 
-QUEUE_PREFIX = "unara:queue:"
+QUEUE_PREFIX = "instaauto:queue:"
 RESULT_QUEUE = f"{QUEUE_PREFIX}result"
 
 

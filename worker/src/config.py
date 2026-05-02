@@ -38,9 +38,9 @@ class WorkerConfig:
         return cls(
             db_host=os.getenv("DB_HOST", "mysql"),
             db_port=int(os.getenv("DB_PORT", "3306")),
-            db_user=os.getenv("DB_USER", "unara"),
+            db_user=os.getenv("DB_USER", "instaauto"),
             db_password=os.getenv("DB_PASSWORD", ""),
-            db_name=os.getenv("DB_NAME", "unara"),
+            db_name=os.getenv("DB_NAME", "instaauto"),
             redis_host=os.getenv("REDIS_HOST", "redis"),
             redis_port=int(os.getenv("REDIS_PORT", "6379")),
             redis_db=int(os.getenv("REDIS_DB", "0")),

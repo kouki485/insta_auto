@@ -63,7 +63,7 @@ class DispatchDmJobsCommandTest extends TestCase
             ->andReturn('dm-job-1');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-dm')->assertOk();
+        $this->artisan('instaauto:dispatch-dm')->assertOk();
 
         $this->assertSame(Prospect::STATUS_QUEUED, $high->fresh()->status);
         $this->assertSame(Prospect::STATUS_NEW, $low->fresh()->status);
@@ -97,7 +97,7 @@ class DispatchDmJobsCommandTest extends TestCase
         $service->shouldNotReceive('dispatch');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-dm')->assertOk();
+        $this->artisan('instaauto:dispatch-dm')->assertOk();
     }
 
     public function test_skips_outside_active_hours(): void
@@ -111,7 +111,7 @@ class DispatchDmJobsCommandTest extends TestCase
         $service->shouldNotReceive('dispatch');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-dm')->assertOk();
+        $this->artisan('instaauto:dispatch-dm')->assertOk();
     }
 
     public function test_skips_on_weekend(): void
@@ -125,7 +125,7 @@ class DispatchDmJobsCommandTest extends TestCase
         $service->shouldNotReceive('dispatch');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-dm')->assertOk();
+        $this->artisan('instaauto:dispatch-dm')->assertOk();
     }
 
     public function test_auto_pauses_when_health_score_below_30(): void
@@ -152,7 +152,7 @@ class DispatchDmJobsCommandTest extends TestCase
         $service->shouldNotReceive('dispatch');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-dm')->assertOk();
+        $this->artisan('instaauto:dispatch-dm')->assertOk();
 
         $this->assertSame(Account::STATUS_PAUSED, $account->fresh()->status);
         $this->assertDatabaseHas('safety_events', [
@@ -165,8 +165,8 @@ class DispatchDmJobsCommandTest extends TestCase
     private function makeAccount(array $overrides = []): Account
     {
         return Account::query()->create(array_merge([
-            'store_name' => 'うなら',
-            'ig_username' => 'unara_'.uniqid(),
+            'store_name' => 'Demo Store',
+            'ig_username' => 'demo_'.uniqid(),
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://u:p@example.com',
             'ig_password' => 'secret',

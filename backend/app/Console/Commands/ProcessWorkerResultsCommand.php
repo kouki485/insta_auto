@@ -17,13 +17,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Python Worker が `unara:queue:result` に書き戻した結果を取り込む.
+ * Python Worker が `instaauto:queue:result` に書き戻した結果を取り込む.
  * Phase 1 では DmLog / PostSchedule の status 更新のみ。
  * Phase 4 で safety_events への critical イベント連動を追加する。
  */
 class ProcessWorkerResultsCommand extends Command
 {
-    protected $signature = 'unara:process-results {--max=200 : 1 回の起動で処理する最大件数}';
+    protected $signature = 'instaauto:process-results {--max=200 : 1 回の起動で処理する最大件数}';
 
     protected $description = 'Python Worker からの結果キューを消費して DB に反映する.';
 

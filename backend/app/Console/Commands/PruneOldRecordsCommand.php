@@ -22,7 +22,7 @@ use Illuminate\Console\Command;
  */
 class PruneOldRecordsCommand extends Command
 {
-    protected $signature = 'unara:prune-old-records {--dry-run : 削除せず件数のみ出力}';
+    protected $signature = 'instaauto:prune-old-records {--dry-run : 削除せず件数のみ出力}';
 
     protected $description = 'データ保持ポリシーに従い古いレコードを自動削除する.';
 

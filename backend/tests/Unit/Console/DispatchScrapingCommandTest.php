@@ -48,7 +48,7 @@ class DispatchScrapingCommandTest extends TestCase
             });
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-scraping')->assertOk();
+        $this->artisan('instaauto:dispatch-scraping')->assertOk();
 
         $this->assertSame(['hightag', 'lowtag'], $captured);
         // last_scraped_at は ProcessWorkerResults の結果受信時に更新するため、
@@ -75,7 +75,7 @@ class DispatchScrapingCommandTest extends TestCase
             ->andReturn('job-id');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-scraping')->assertOk();
+        $this->artisan('instaauto:dispatch-scraping')->assertOk();
     }
 
     public function test_skips_paused_accounts(): void
@@ -92,14 +92,14 @@ class DispatchScrapingCommandTest extends TestCase
         $service->shouldNotReceive('dispatch');
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:dispatch-scraping')->assertOk();
+        $this->artisan('instaauto:dispatch-scraping')->assertOk();
     }
 
     private function makeAccount(array $overrides = []): Account
     {
         return Account::query()->create(array_merge([
-            'store_name' => 'うなら',
-            'ig_username' => 'unara_'.uniqid(),
+            'store_name' => 'Demo Store',
+            'ig_username' => 'demo_'.uniqid(),
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://u:p@example.com',
             'ig_password' => 'secret',

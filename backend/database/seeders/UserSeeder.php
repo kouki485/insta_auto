@@ -13,9 +13,9 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         User::query()->updateOrCreate(
-            ['email' => env('SEED_ADMIN_EMAIL', 'admin@unara.local')],
+            ['email' => env('SEED_ADMIN_EMAIL', 'admin@example.com')],
             [
-                'name' => env('SEED_ADMIN_NAME', '運用代行スタッフ'),
+                'name' => env('SEED_ADMIN_NAME', '運用担当者'),
                 'password' => Hash::make(env('SEED_ADMIN_PASSWORD', 'password')),
             ],
         );

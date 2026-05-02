@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 
 export const metadata: Metadata = {
-  title: "うなら 運用ダッシュボード",
+  title: "Insta Auto — 運用ダッシュボード",
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

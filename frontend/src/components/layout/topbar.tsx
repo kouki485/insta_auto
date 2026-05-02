@@ -25,7 +25,7 @@ export function Topbar() {
     <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3">
       <div>
         <p className="text-xs uppercase tracking-widest text-zinc-400">Operations</p>
-        <p className="text-base font-semibold text-zinc-900">{user?.name ?? "運用代行スタッフ"}</p>
+        <p className="text-base font-semibold text-zinc-900">{user?.name ?? "運用担当者"}</p>
       </div>
       <Button variant="outline" onClick={handleLogout}>
         ログアウト

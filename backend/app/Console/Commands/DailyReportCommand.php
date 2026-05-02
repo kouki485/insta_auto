@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  */
 class DailyReportCommand extends Command
 {
-    protected $signature = 'unara:daily-report';
+    protected $signature = 'instaauto:daily-report';
 
     protected $description = '昨日の DM/返信/safety_events サマリーを Slack に投稿する.';
 
@@ -79,7 +79,7 @@ class DailyReportCommand extends Command
         $health = $this->health->evaluate($account);
 
         return sprintf(
-            "[unara/%s] %s daily report\n"
+            "[instaauto/%s] %s daily report\n"
             ."- DM sent: %d (limit %d)\n"
             ."- replies: %d\n"
             ."- safety events: critical=%d / warning=%d\n"

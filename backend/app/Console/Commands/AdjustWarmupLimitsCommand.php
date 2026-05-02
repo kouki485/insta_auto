@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Log;
  */
 class AdjustWarmupLimitsCommand extends Command
 {
-    protected $signature = 'unara:adjust-warmup';
+    protected $signature = 'instaauto:adjust-warmup';
 
     protected $description = '経過週数に応じて daily_dm_limit を 5/10/15/20 に更新する.';
 

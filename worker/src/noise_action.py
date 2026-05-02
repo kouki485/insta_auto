@@ -15,11 +15,14 @@ from src.instagram_client import InstagramClient
 logger = logging.getLogger(__name__)
 
 NOISE_PROBABILITY = 0.5
-JAPANESE_FOOD_ACCOUNTS = (
-    "tabelog",
-    "japanesefood",
-    "asakusafoodtour",
-    "tokyoeats",
+
+# 検索対象とする一般的な公開アカウント例。テナント業種・地域別の最適化は
+# /noise-targets API などを将来追加する想定で、ここでは汎用な大型アカウントに留める.
+NOISE_TARGET_ACCOUNTS = (
+    "instagram",
+    "natgeo",
+    "nasa",
+    "nationalgeographic",
 )
 
 
@@ -37,10 +40,10 @@ def perform(
     actions: list[tuple[str, Callable[[], None]]] = [
         ("feed_timeline", lambda: client.raw.feed_timeline(amount=random.randint(3, 10))),  # type: ignore[attr-defined]
         ("user_info_lookup", lambda: client.raw.user_info_by_username(  # type: ignore[attr-defined]
-            random.choice(JAPANESE_FOOD_ACCOUNTS)
+            random.choice(NOISE_TARGET_ACCOUNTS)
         )),
         ("user_stories", lambda: client.raw.user_stories(  # type: ignore[attr-defined]
-            client.raw.user_id_from_username(random.choice(JAPANESE_FOOD_ACCOUNTS))  # type: ignore[attr-defined]
+            client.raw.user_id_from_username(random.choice(NOISE_TARGET_ACCOUNTS))  # type: ignore[attr-defined]
         )),
         # delay_only は他アクションが利用不可な場合のフォールバック (テストでも使用).
         ("delay_only", lambda: client.delay()),

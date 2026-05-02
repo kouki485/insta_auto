@@ -8,11 +8,15 @@ use App\Models\Account;
 use App\Models\HashtagWatchlist;
 use Illuminate\Database\Seeder;
 
+/**
+ * 監視ハッシュタグの初期データ投入.
+ *
+ * テナントごとに対象タグは大きく異なるため、ここでは「Instagram 上の旅行系
+ * 一般タグ」を最小限投入する。本格運用前に /hashtags 画面でテナント業種・
+ * 地域に合わせて差し替えること.
+ */
 class HashtagWatchlistSeeder extends Seeder
 {
-    /**
-     * 設計書 §2.2.7 の14ハッシュタグを投入する.
-     */
     public function run(): void
     {
         $account = Account::query()->first();
@@ -36,20 +40,15 @@ class HashtagWatchlistSeeder extends Seeder
     private function hashtags(): array
     {
         return [
-            ['asakusa', 'en', 10],
-            ['浅草', 'ja', 9],
-            ['sensoji', 'en', 9],
-            ['浅草寺', 'ja', 8],
-            ['asakusatemple', 'en', 8],
-            ['tokyotrip', 'en', 7],
-            ['japantrip', 'en', 7],
-            ['淺草', 'zh-tw', 8],
-            ['浅草旅行', 'zh-cn', 7],
-            ['아사쿠사', 'ko', 8],
-            ['센소지', 'ko', 7],
-            ['asakusafood', 'en', 7],
-            ['unagi', 'en', 6],
-            ['japanfood', 'en', 5],
+            ['travel', 'en', 8],
+            ['traveling', 'en', 7],
+            ['trip', 'en', 7],
+            ['vacation', 'en', 6],
+            ['foodie', 'en', 6],
+            ['instafood', 'en', 5],
+            ['旅行', 'ja', 6],
+            ['여행', 'ko', 6],
+            ['旅行', 'zh-tw', 6],
         ];
     }
 }

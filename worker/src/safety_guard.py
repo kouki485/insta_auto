@@ -88,7 +88,7 @@ class SafetyGuard:
             notify_slack(
                 self._webhook,
                 text=(
-                    f":rotating_light: [unara] account_id={self.account_id} "
+                    f":rotating_light: [instaauto] account_id={self.account_id} "
                     f"context={context} event={event_type} "
                     f"exception={type(exc).__name__}: {exc}"
                 ),

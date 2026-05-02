@@ -4,8 +4,8 @@ import "./globals.css";
 import { AppProviders } from "@/components/providers/swr-provider";
 
 export const metadata: Metadata = {
-  title: "うなら 運用ダッシュボード",
-  description: "うなら Instagram 運用自動化アプリの管理画面",
+  title: "Insta Auto — 運用ダッシュボード",
+  description: "Instagram 運用自動化ツールの管理画面",
 };
 
 export default function RootLayout({

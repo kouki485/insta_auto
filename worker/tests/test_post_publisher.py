@@ -59,7 +59,7 @@ def fixture_image(tmp_path: Path) -> Path:
 def context(tmp_path: Path) -> AccountContext:
     return AccountContext(
         account_id=1,
-        username="unara",
+        username="demo_account",
         password="pw",
         proxy_url="http://u:p@brd.example.com",
         session_path=str(tmp_path / "1.json"),

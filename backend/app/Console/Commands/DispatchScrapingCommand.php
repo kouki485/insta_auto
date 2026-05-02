@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
  */
 class DispatchScrapingCommand extends Command
 {
-    protected $signature = 'unara:dispatch-scraping {--limit=10 : 1 回の起動でキューに積むタグ数}';
+    protected $signature = 'instaauto:dispatch-scraping {--limit=10 : 1 回の起動でキューに積むタグ数}';
 
     protected $description = 'hashtag_watchlist から優先度順にタグを scrape キューへ投入する.';
 

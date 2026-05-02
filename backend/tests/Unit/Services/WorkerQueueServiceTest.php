@@ -97,7 +97,7 @@ class WorkerQueueServiceTest extends TestCase
 
     public function test_worker_queue_key_uses_prefix(): void
     {
-        $this->assertSame('unara:queue:dm', WorkerQueue::key('dm'));
-        $this->assertSame('unara:queue:dm', WorkerQueue::key('unara:queue:dm'));
+        $this->assertSame('instaauto:queue:dm', WorkerQueue::key('dm'));
+        $this->assertSame('instaauto:queue:dm', WorkerQueue::key('instaauto:queue:dm'));
     }
 }

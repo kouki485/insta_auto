@@ -29,7 +29,7 @@ class DmGeneratorServiceTest extends TestCase
         $service = new DmGeneratorService(client: null, model: '', dailyLimit: 0);
         [$message, $template, $language] = $service->generate($account, $prospect);
 
-        $this->assertSame('Hi tourist_a! Welcome to うなら.', $message);
+        $this->assertSame('Hi tourist_a! Welcome to Demo Store.', $message);
         $this->assertNotNull($template);
         $this->assertSame('en', $language);
     }
@@ -70,8 +70,8 @@ class DmGeneratorServiceTest extends TestCase
     private function makeAccount(): Account
     {
         return Account::query()->create([
-            'store_name' => 'うなら',
-            'ig_username' => 'unara_'.uniqid(),
+            'store_name' => 'Demo Store',
+            'ig_username' => 'demo_'.uniqid(),
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://u:p@example.com',
             'ig_password' => 'secret',

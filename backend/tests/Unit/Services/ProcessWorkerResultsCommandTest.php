@@ -43,7 +43,7 @@ class ProcessWorkerResultsCommandTest extends TestCase
             ], null);
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:process-results')->assertOk();
+        $this->artisan('instaauto:process-results')->assertOk();
 
         $log->refresh();
         $this->assertSame(DmLog::STATUS_SENT, $log->status);
@@ -67,7 +67,7 @@ class ProcessWorkerResultsCommandTest extends TestCase
             ], null);
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:process-results')->assertOk();
+        $this->artisan('instaauto:process-results')->assertOk();
 
         $log->refresh();
         $this->assertSame(DmLog::STATUS_FAILED, $log->status);
@@ -95,7 +95,7 @@ class ProcessWorkerResultsCommandTest extends TestCase
             ], null);
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:process-results')->assertOk();
+        $this->artisan('instaauto:process-results')->assertOk();
 
         $this->assertSame(PostSchedule::STATUS_FAILED, $post->fresh()->status);
 
@@ -129,7 +129,7 @@ class ProcessWorkerResultsCommandTest extends TestCase
             ], null);
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:process-results')->assertOk();
+        $this->artisan('instaauto:process-results')->assertOk();
 
         $post->refresh();
         $this->assertSame(PostSchedule::STATUS_POSTED, $post->status);
@@ -161,7 +161,7 @@ class ProcessWorkerResultsCommandTest extends TestCase
             ], null);
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:process-results')->assertOk();
+        $this->artisan('instaauto:process-results')->assertOk();
 
         $this->assertSame(Account::STATUS_PAUSED, $account->fresh()->status);
         $this->assertDatabaseHas('safety_events', [
@@ -199,7 +199,7 @@ class ProcessWorkerResultsCommandTest extends TestCase
             ], null);
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:process-results')->assertOk();
+        $this->artisan('instaauto:process-results')->assertOk();
 
         $this->assertSame(Account::STATUS_ACTIVE, $account->fresh()->status);
         $this->assertDatabaseHas('safety_events', [
@@ -251,7 +251,7 @@ class ProcessWorkerResultsCommandTest extends TestCase
             ], null);
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:process-results')->assertOk();
+        $this->artisan('instaauto:process-results')->assertOk();
 
         $this->assertDatabaseHas('prospects', [
             'account_id' => $account->id,
@@ -299,7 +299,7 @@ class ProcessWorkerResultsCommandTest extends TestCase
             ], null);
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:process-results')->assertOk();
+        $this->artisan('instaauto:process-results')->assertOk();
 
         $row = Prospect::query()->where('ig_user_id', 'u_dm_sent')->firstOrFail();
         // status は dm_sent のまま、新規 DM は送られない.
@@ -350,7 +350,7 @@ class ProcessWorkerResultsCommandTest extends TestCase
             );
         $this->app->instance(WorkerQueueService::class, $service);
 
-        $this->artisan('unara:process-results')->assertOk();
+        $this->artisan('instaauto:process-results')->assertOk();
 
         $this->assertSame(1, Prospect::query()->where('account_id', $account->id)->count());
         $row = Prospect::query()->where('account_id', $account->id)->firstOrFail();
@@ -393,8 +393,8 @@ class ProcessWorkerResultsCommandTest extends TestCase
     private function makeAccount(): Account
     {
         return Account::query()->create([
-            'store_name' => 'うなら',
-            'ig_username' => 'unara_test_'.uniqid(),
+            'store_name' => 'Demo Store',
+            'ig_username' => 'demo_test_'.uniqid(),
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://u:p@example.com',
             'ig_password' => 'secret',

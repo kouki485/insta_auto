@@ -89,7 +89,7 @@ class AccountHealthServiceTest extends TestCase
     private function makeAccount(): Account
     {
         return Account::query()->create([
-            'store_name' => 'うなら',
+            'store_name' => 'Demo Store',
             'ig_username' => 'health_'.uniqid(),
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://u:p@example.com',

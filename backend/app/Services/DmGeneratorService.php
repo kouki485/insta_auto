@@ -83,7 +83,7 @@ class DmGeneratorService
 
     private function fillTemplate(?DmTemplate $template, Account $account, Prospect $prospect): string
     {
-        $body = $template?->template ?? "Hi {username}! Welcome to Asakusa.";
+        $body = $template?->template ?? "Hi {username}! Thanks for stopping by — we'd love to host you at {store_name}.";
         $replacements = [
             '{username}' => $prospect->ig_username,
             '{store_name}' => $account->store_name,
@@ -117,24 +117,19 @@ class DmGeneratorService
 
         $system = sprintf(
             <<<'TXT'
-You are writing a friendly, casual Instagram DM from a traditional unagi
-(grilled eel) restaurant in Asakusa, Tokyo, to a tourist. The DM must:
+You are writing a friendly, casual Instagram DM on behalf of a small local
+business named "%s" to a potential customer. The DM must:
 - Be written in %s
 - Sound like a real human staff member, not a bot
 - Be 2-4 sentences (max 60 words)
-- Mention the restaurant name "%s" naturally
-- Include a small offer (e.g., free appetizer with DM screenshot)
+- Mention the business name "%s" naturally
+- Include a small offer (e.g., a small welcome gift with DM screenshot)
 - NOT contain URLs (URLs trigger Instagram spam filters)
 - NOT use generic phrases like "We hope you enjoy your stay"
 - Vary the wording each time (do not produce identical messages)
-
-Restaurant info:
-- Name: %s (うなら)
-- Location: Near Sensoji Temple, Asakusa
-- Specialty: Traditional charcoal-grilled unagi (eel)
 TXT,
-            $language,
             $account->store_name,
+            $language,
             $account->store_name,
         );
 

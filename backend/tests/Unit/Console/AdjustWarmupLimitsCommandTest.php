@@ -26,7 +26,7 @@ class AdjustWarmupLimitsCommandTest extends TestCase
         $account = $this->makeAccount(['warmup_started_at' => null]);
 
         Carbon::setTestNow(Carbon::parse('2026-05-01 00:00:00'));
-        $this->artisan('unara:adjust-warmup')->assertOk();
+        $this->artisan('instaauto:adjust-warmup')->assertOk();
 
         $this->assertNotNull($account->fresh()->warmup_started_at);
     }
@@ -39,7 +39,7 @@ class AdjustWarmupLimitsCommandTest extends TestCase
         ]);
         Carbon::setTestNow(Carbon::parse('2026-05-01 00:00:00'));
 
-        $this->artisan('unara:adjust-warmup')->assertOk();
+        $this->artisan('instaauto:adjust-warmup')->assertOk();
 
         $this->assertSame(5, $account->fresh()->daily_dm_limit);
     }
@@ -52,7 +52,7 @@ class AdjustWarmupLimitsCommandTest extends TestCase
         ]);
         Carbon::setTestNow(Carbon::parse('2026-05-01 00:00:00'));
 
-        $this->artisan('unara:adjust-warmup')->assertOk();
+        $this->artisan('instaauto:adjust-warmup')->assertOk();
 
         $this->assertSame(10, $account->fresh()->daily_dm_limit);
     }
@@ -65,7 +65,7 @@ class AdjustWarmupLimitsCommandTest extends TestCase
         ]);
         Carbon::setTestNow(Carbon::parse('2026-05-01 00:00:00'));
 
-        $this->artisan('unara:adjust-warmup')->assertOk();
+        $this->artisan('instaauto:adjust-warmup')->assertOk();
 
         $this->assertSame(20, $account->fresh()->daily_dm_limit);
     }
@@ -79,7 +79,7 @@ class AdjustWarmupLimitsCommandTest extends TestCase
         ]);
         Carbon::setTestNow(Carbon::parse('2026-05-01 00:00:00'));
 
-        $this->artisan('unara:adjust-warmup')->assertOk();
+        $this->artisan('instaauto:adjust-warmup')->assertOk();
 
         $this->assertSame(5, $account->fresh()->daily_dm_limit);
     }
@@ -87,8 +87,8 @@ class AdjustWarmupLimitsCommandTest extends TestCase
     private function makeAccount(array $overrides = []): Account
     {
         return Account::query()->create(array_merge([
-            'store_name' => 'うなら',
-            'ig_username' => 'unara_'.uniqid(),
+            'store_name' => 'Demo Store',
+            'ig_username' => 'demo_'.uniqid(),
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://u:p@example.com',
             'ig_password' => 'secret',

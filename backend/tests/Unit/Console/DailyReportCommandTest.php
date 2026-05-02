@@ -95,7 +95,7 @@ class DailyReportCommandTest extends TestCase
         };
         $this->app->instance(SlackNotifier::class, $notifier);
 
-        $this->artisan('unara:daily-report')->assertOk();
+        $this->artisan('instaauto:daily-report')->assertOk();
 
         $this->assertCount(2, $sent);
         $this->assertStringContainsString('daily report', $sent[0]);
@@ -104,7 +104,7 @@ class DailyReportCommandTest extends TestCase
     private function makeAccount(): Account
     {
         return Account::query()->create([
-            'store_name' => 'うなら',
+            'store_name' => 'Demo Store',
             'ig_username' => 'daily_'.uniqid(),
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://u:p@example.com',

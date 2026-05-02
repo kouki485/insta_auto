@@ -80,7 +80,7 @@ class ProspectsApiTest extends TestCase
             ->assertStatus(404);
     }
 
-    private function makeAccount(string $tag = 'unara'): Account
+    private function makeAccount(string $tag = 'demo'): Account
     {
         return Account::query()->create([
             'store_name' => "店舗{$tag}",

@@ -1,7 +1,8 @@
-# うなら Instagram運用自動化アプリ
+# Insta Auto — Instagram 運用自動化ツール
 
-浅草の鰻専門店「うなら」向け Instagram 運用自動化システムの MVP。
-詳細仕様は [docs/DESIGN.md](docs/DESIGN.md) を参照。
+任意のテナント(店舗 / ブランド / 個人事業主)の Instagram 運用を自動化する SaaS 型ツールです。
+最初の発注時の MVP 仕様(うなら向け運用)は `docs/DESIGN.md` に保管していますが、
+コード本体は **マルチテナント対応の汎用プロダクト** として実装されています。
 
 ## アーキテクチャ概要
 
@@ -52,9 +53,9 @@ cd frontend && npm install && cd ..
 docker compose up
 ```
 
-### Instagrapi 初回セッション生成 (ローカル PC で対話実行)
+### 初回セッション生成 (ローカル PC で対話実行)
 
-新規の Instagram アカウントを使い始めるとき、または セッションが失効したときの 1 回だけ実施。
+新規 Instagram アカウントを使い始めるとき、またはセッションが失効したときに 1 回だけ実施。
 **サーバー上で実行しない。** チャレンジ要求 (メール / SMS) を対話で通す必要があるため。
 
 ```bash
@@ -83,7 +84,7 @@ python3.11 scripts/smoke_test_instagrapi.py
 | 0 | 環境構築 + Instagrapi 疎通検証 |
 | 1 | バックエンド基盤 (Laravel + DB) |
 | 2 | 自動投稿機能 |
-| 3 | 観光客抽出機能 |
+| 3 | 候補抽出機能 |
 | 4 | 自動 DM 送信機能 |
 | 5 | 管理ダッシュボード |
 | 6 | 統合テスト + 段階的本番運用 |
@@ -109,11 +110,20 @@ insta_auto/
 ├── worker/         Python 3.11 + Instagrapi
 ├── frontend/       Next.js 14
 ├── scripts/        ローカル実行ユーティリティ
-├── docs/           DESIGN.md, OPERATIONS.md
+├── docs/           DESIGN.md, OPERATIONS.md, SETUP.md
+├── deploy/         supervisor / nginx / crontab テンプレ
 └── docker-compose.yml
 ```
 
+## ドキュメント
+
+| ファイル | 用途 |
+|---|---|
+| `docs/DESIGN.md` | 初版発注時の設計書(うなら向け固有要件を含むので歴史的資料として保管) |
+| `docs/OPERATIONS.md` | 運用担当者向け日常運用手順 (緊急停止 / 復帰 / GDPR / バックアップ) |
+| `docs/SETUP.md` | 本番投入セットアップガイド (ドメイン / VPS / Bright Data 等) |
+
 ## ライセンス / 注意
 
-本プロジェクトは Instagram 利用規約に違反する非公式手段 (Instagrapi) を採用しており、
-発注者了承のうえで運用される。BAN リスクは発注者責任。
+本プロジェクトは Instagram 利用規約に抵触する非公式手段 (Instagrapi) を採用しており、
+利用するテナント自身の責任で運用してください。BAN リスクはテナント責任です。

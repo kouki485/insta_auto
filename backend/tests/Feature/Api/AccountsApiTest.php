@@ -22,7 +22,7 @@ class AccountsApiTest extends TestCase
         $this->getJson('/api/accounts')
             ->assertOk()
             ->assertJsonPath('data.0.id', $account->id)
-            ->assertJsonPath('data.0.ig_username', 'unara_test');
+            ->assertJsonPath('data.0.ig_username', 'demo_test');
     }
 
     public function test_proxy_url_is_not_returned_in_response(): void
@@ -73,8 +73,8 @@ class AccountsApiTest extends TestCase
     private function makeAccount(array $overrides = []): Account
     {
         return Account::query()->create(array_merge([
-            'store_name' => 'うなら',
-            'ig_username' => 'unara_test',
+            'store_name' => 'Demo Store',
+            'ig_username' => 'demo_test',
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://user:pass@brd.example.com:22225',
             'ig_password' => 'secret',

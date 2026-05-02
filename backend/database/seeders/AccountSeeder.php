@@ -11,12 +11,12 @@ class AccountSeeder extends Seeder
 {
     public function run(): void
     {
-        $username = env('SEED_IG_USERNAME', 'unara_official');
+        $username = env('SEED_IG_USERNAME', 'demo_account');
 
         Account::query()->updateOrCreate(
             ['ig_username' => $username],
             [
-                'store_name' => env('SEED_STORE_NAME', 'うなら'),
+                'store_name' => env('SEED_STORE_NAME', 'Demo Store'),
                 'ig_session_path' => env(
                     'SEED_SESSION_PATH',
                     "/storage/sessions/{$username}.json"
@@ -30,7 +30,7 @@ class AccountSeeder extends Seeder
                 'daily_follow_limit' => 5,
                 'daily_like_limit' => 30,
                 'status' => Account::STATUS_PAUSED,
-                'timezone' => 'Asia/Tokyo',
+                'timezone' => env('SEED_TIMEZONE', 'Asia/Tokyo'),
                 'warmup_started_at' => null,
             ],
         );

@@ -36,7 +36,7 @@ class PruneOldRecordsCommandTest extends TestCase
             'found_at' => now()->subDays(PruneOldRecordsCommand::PROSPECT_NEW_DAYS - 1),
         ]);
 
-        $this->artisan('unara:prune-old-records')->assertOk();
+        $this->artisan('instaauto:prune-old-records')->assertOk();
 
         $this->assertDatabaseMissing('prospects', ['id' => $old->id]);
         $this->assertDatabaseHas('prospects', ['id' => $fresh->id]);
@@ -73,7 +73,7 @@ class PruneOldRecordsCommandTest extends TestCase
             'sent_at' => now()->subDays(10),
         ]);
 
-        $this->artisan('unara:prune-old-records')->assertOk();
+        $this->artisan('instaauto:prune-old-records')->assertOk();
 
         $this->assertDatabaseMissing('dm_logs', ['id' => $old->id]);
         $this->assertDatabaseHas('dm_logs', ['id' => $recent->id]);
@@ -97,7 +97,7 @@ class PruneOldRecordsCommandTest extends TestCase
             'occurred_at' => now()->subDays(10),
         ]);
 
-        $this->artisan('unara:prune-old-records')->assertOk();
+        $this->artisan('instaauto:prune-old-records')->assertOk();
 
         $this->assertSame(1, SafetyEvent::query()->count());
     }
@@ -122,7 +122,7 @@ class PruneOldRecordsCommandTest extends TestCase
             'dm_sent_at' => now()->subDays(PruneOldRecordsCommand::PROSPECT_DM_SENT_DAYS - 1),
         ]);
 
-        $this->artisan('unara:prune-old-records')->assertOk();
+        $this->artisan('instaauto:prune-old-records')->assertOk();
 
         $this->assertDatabaseMissing('prospects', ['id' => $old->id]);
         $this->assertDatabaseHas('prospects', ['id' => $recent->id]);
@@ -140,7 +140,7 @@ class PruneOldRecordsCommandTest extends TestCase
             'found_at' => now()->subDays(PruneOldRecordsCommand::PROSPECT_NEW_DAYS + 1),
         ]);
 
-        $this->artisan('unara:prune-old-records')->assertOk();
+        $this->artisan('instaauto:prune-old-records')->assertOk();
 
         $this->assertDatabaseMissing('prospects', ['id' => $skip->id]);
     }
@@ -156,7 +156,7 @@ class PruneOldRecordsCommandTest extends TestCase
             'found_at' => now()->subDays(PruneOldRecordsCommand::PROSPECT_NEW_DAYS + 1),
         ]);
 
-        $this->artisan('unara:prune-old-records', ['--dry-run' => true])->assertOk();
+        $this->artisan('instaauto:prune-old-records', ['--dry-run' => true])->assertOk();
 
         $this->assertSame(1, Prospect::query()->count());
     }
@@ -164,7 +164,7 @@ class PruneOldRecordsCommandTest extends TestCase
     private function makeAccount(): Account
     {
         return Account::query()->create([
-            'store_name' => 'うなら',
+            'store_name' => 'Demo Store',
             'ig_username' => 'prune_'.uniqid(),
             'ig_session_path' => '/storage/sessions/1.json',
             'proxy_url' => 'http://u:p@example.com',

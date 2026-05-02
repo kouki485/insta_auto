@@ -15,12 +15,12 @@ class LoginTest extends TestCase
     public function test_login_returns_token_on_valid_credentials(): void
     {
         $user = User::factory()->create([
-            'email' => 'staff@unara.local',
+            'email' => 'staff@example.com',
             'password' => bcrypt('password'),
         ]);
 
         $response = $this->postJson('/api/auth/login', [
-            'email' => 'staff@unara.local',
+            'email' => 'staff@example.com',
             'password' => 'password',
             'device_name' => 'phpunit',
         ]);
@@ -34,12 +34,12 @@ class LoginTest extends TestCase
     public function test_login_rejects_wrong_password(): void
     {
         User::factory()->create([
-            'email' => 'staff@unara.local',
+            'email' => 'staff@example.com',
             'password' => bcrypt('password'),
         ]);
 
         $this->postJson('/api/auth/login', [
-            'email' => 'staff@unara.local',
+            'email' => 'staff@example.com',
             'password' => 'wrong',
         ])->assertStatus(422);
     }

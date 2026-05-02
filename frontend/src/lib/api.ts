@@ -8,7 +8,7 @@ const PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:808
  * をこのアプリに追加しないこと。XSS が成立した瞬間にトークンが盗まれる.
  * SaaS 化時に HttpOnly Cookie への移行を検討する.
  */
-const TOKEN_KEY = "unara.token";
+const TOKEN_KEY = "instaauto.token";
 
 export function readToken(): string | null {
   if (typeof window === "undefined") return null;

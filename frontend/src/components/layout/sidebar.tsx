@@ -21,8 +21,8 @@ export function Sidebar() {
   return (
     <aside className="hidden w-60 shrink-0 border-r border-zinc-200 bg-white md:flex md:flex-col">
       <div className="px-5 py-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">うなら</p>
-        <p className="mt-1 text-lg font-semibold text-zinc-900">運用ダッシュボード</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Insta Auto</p>
+        <p className="mt-1 text-lg font-semibold text-zinc-900">Instagram 運用ダッシュボード</p>
       </div>
       <nav className="flex flex-col gap-1 px-3 pb-6">
         {NAV.map((item) => {

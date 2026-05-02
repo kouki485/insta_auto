@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('store_name', 100)->comment('店舗名(例: うなら)');
+            $table->string('store_name', 100)->comment('テナント名(店舗・ブランド・アカウント表示名)');
             $table->string('ig_username', 50)->unique();
             $table->string('ig_session_path', 255)->comment('Instagrapiセッションファイルのパス');
             $table->text('ig_password_encrypted')->nullable()->comment('Crypt 暗号化済みのパスワード');

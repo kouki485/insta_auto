@@ -59,7 +59,7 @@ class _StubClient:
 def context(tmp_path: Path) -> AccountContext:
     return AccountContext(
         account_id=1,
-        username="unara",
+        username="demo_account",
         password="pw",
         proxy_url="http://u:p@brd.example.com",
         session_path=str(tmp_path / "1.json"),
@@ -77,7 +77,7 @@ def config(tmp_path: Path) -> WorkerConfig:
         redis_host="x",
         redis_port=6379,
         redis_db=0,
-        instagram_username="unara",
+        instagram_username="demo_account",
         instagram_password="pw",
         proxy_url="http://u:p@brd.example.com",
         session_dir=str(tmp_path / "sessions"),

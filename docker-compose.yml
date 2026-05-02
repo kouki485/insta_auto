@@ -1,14 +1,14 @@
 services:
   mysql:
     image: mysql:8.0
-    container_name: unara-mysql
+    container_name: instaauto-mysql
     restart: unless-stopped
     ports:
       - "${HOST_MYSQL_PORT:-3308}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
-      MYSQL_DATABASE: ${DB_DATABASE:-unara}
-      MYSQL_USER: ${DB_USERNAME:-unara}
+      MYSQL_DATABASE: ${DB_DATABASE:-instaauto}
+      MYSQL_USER: ${DB_USERNAME:-instaauto}
       MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
     volumes:
       - mysql-data:/var/lib/mysql
@@ -18,11 +18,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - unara
+      - instaauto
 
   redis:
     image: redis:7-alpine
-    container_name: unara-redis
+    container_name: instaauto-redis
     restart: unless-stopped
     ports:
       - "${HOST_REDIS_PORT:-6380}:6379"
@@ -34,13 +34,13 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - unara
+      - instaauto
 
   php:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: unara-php
+    container_name: instaauto-php
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
@@ -49,8 +49,8 @@ services:
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-unara}
-      DB_USERNAME: ${DB_USERNAME:-unara}
+      DB_DATABASE: ${DB_DATABASE:-instaauto}
+      DB_USERNAME: ${DB_USERNAME:-instaauto}
       DB_PASSWORD: ${DB_PASSWORD:-secret}
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -60,11 +60,11 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - unara
+      - instaauto
 
   nginx:
     image: nginx:1.27-alpine
-    container_name: unara-nginx
+    container_name: instaauto-nginx
     restart: unless-stopped
     ports:
       - "8080:80"
@@ -74,13 +74,13 @@ services:
     depends_on:
       - php
     networks:
-      - unara
+      - instaauto
 
   worker:
     build:
       context: ./worker
       dockerfile: Dockerfile
-    container_name: unara-worker
+    container_name: instaauto-worker
     restart: unless-stopped
     volumes:
       - ./worker:/app
@@ -88,9 +88,9 @@ services:
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_USER: ${DB_USERNAME:-unara}
+      DB_USER: ${DB_USERNAME:-instaauto}
       DB_PASSWORD: ${DB_PASSWORD:-secret}
-      DB_NAME: ${DB_DATABASE:-unara}
+      DB_NAME: ${DB_DATABASE:-instaauto}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       PYTHONUNBUFFERED: "1"
@@ -100,11 +100,11 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - unara
+      - instaauto
 
   node:
     image: node:20-alpine
-    container_name: unara-node
+    container_name: instaauto-node
     restart: unless-stopped
     working_dir: /app
     ports:
@@ -118,7 +118,7 @@ services:
       # Server Components / SSR からコンテナネットワーク経由で叩く URL
       INTERNAL_API_URL: http://nginx/api
     networks:
-      - unara
+      - instaauto
 
 volumes:
   mysql-data:
@@ -126,5 +126,5 @@ volumes:
   sessions:
 
 networks:
-  unara:
+  instaauto:
     driver: bridge
